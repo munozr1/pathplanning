@@ -10,25 +10,6 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ev3 = EV3Brick()
 left_motor = Motor(Port.B)
 right_motor = Motor(Port.C)
-# Move forward by one square
-def forward():
-    # Run both motors simultaneously !!!!!!!
-    left_motor.run_angle(speed, oneFoot, wait=False)  
-    right_motor.run_angle(speed, oneFoot, wait=True)
-    left_motor.stop()
-    right_motor.stop()
-
-def leftTurn():
-    left_motor.run_angle(speed, -turn, wait=False)  
-    right_motor.run_angle(speed, turn, wait=True)
-    left_motor.stop()
-    right_motor.stop()
-
-def rightTurn():
-    left_motor.run_angle(speed, turn, wait=False)
-    right_motor.run_angle(speed, -turn, wait=True)
-    left_motor.stop()
-    right_motor.stop()
 speed = 200
 oneFoot = 505
 turn = 196
