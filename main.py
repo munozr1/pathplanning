@@ -1,57 +1,54 @@
 #!/usr/bin/env pybricks-micropython
-from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
-from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
-from pybricks.robotics import DriveBase
-from pybricks.media.ev3dev import SoundFile, ImageFile
+# from pybricks.hubs import EV3Brick
+# from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
+#                                  InfraredSensor, UltrasonicSensor, GyroSensor)
+# from pybricks.parameters import Port, Stop, Direction, Button, Color
+# from pybricks.tools import wait, StopWatch, DataLog
+# from pybricks.robotics import DriveBase
+# from pybricks.media.ev3dev import SoundFile, ImageFile
+from collections import deque
 
-ev3 = EV3Brick()
-left_motor = Motor(Port.B)
-right_motor = Motor(Port.C)
-speed = 200
-oneFoot = 505
-turn = 196
+
+# ev3 = EV3Brick()
+# left_motor = Motor(Port.B)
+# right_motor = Motor(Port.C)
+# speed = 200
+# oneFoot = 505
+# turn = 196
 
 
 obsConstant = 99
 
 # Define start and goal positions
-start = {'x': 2, 'y': 5}
-goal = {'x': 14, 'y': 9}
+start = {'x': 1, 'y': 2}
+goal = {'x': 6, 'y': 2}
 
 # Define grid dimensions and obstacles
-rows, cols = (16, 15)  # Update cols to 15 based on obstacle coordinates
+rows, cols = (10, 10)  # Update cols to 15 based on obstacle coordinates
 obs = [
-    {'x': 2, 'y': 9},
-    {'x': 3, 'y': 9},
     {'x': 3, 'y': 2},
     {'x': 4, 'y': 2},
-    {'x': 5, 'y': 2}, 
-    {'x': 4, 'y': 5},
-    {'x': 4, 'y': 6},
-    {'x': 6, 'y': 7},
-    {'x': 6, 'y': 10},
-    {'x': 6, 'y': 11},
-    {'x': 7, 'y': 10},
-    {'x': 7, 'y': 11},
-    {'x': 8, 'y': 1},
-    {'x': 8, 'y': 5},
-    {'x': 9, 'y': 5},
-    {'x': 9, 'y': 6},
-    {'x': 3, 'y': 12},
-    {'x': 3, 'y': 13},
 ]
 
 # Initialize grid
 grid = [[0 for _ in range(cols)] for _ in range(rows)]  
 
-# # Pretty print the grid
-#def pretty_print_grid(grid):
-#    for row in grid:
-#        print(" ".join(f"{num:3d}" for num in row))
-#
+# Pretty print the grid with path
+def pretty_print_grid(grid, path):
+    # Create a copy of the grid to modify
+    grid_with_path = [row[:] for row in grid]
+    
+    # Mark the path positions with '*'
+    for pos in path:
+        grid_with_path[pos['y']][pos['x']] = '*'
+    
+    # Print the grid, showing the path as stars
+    for row in grid_with_path:
+        print(" ".join(f"{str(num):>3}" for num in row))
+
+# Call pretty_print_grid with the path to visualize the path
+
+
 for i in range(0, rows):
     for j in range(0, cols):
         distance = abs(goal['x'] - j) + abs(goal['y'] - i)
@@ -79,29 +76,42 @@ def get_neighbors(pos):
     # Filter out neighbors that are out of bounds
     return [n for n in neighbors if 0 <= n['x'] < cols and 0 <= n['y'] < rows]
 
-# Move from start to goal, avoiding obstacles
-def move_to_goal(start, goal):
-    stack = [start]  # Path tracking
-    current_pos = start
+def bfs_move_to_goal(start, goal):
+    queue = deque([start])
+    visited = set()
+    visited.add((start['x'], start['y']))
+    parent = {}  # To reconstruct the path
 
-    while current_pos != goal:
-        neighbors = get_neighbors(current_pos)
-        neighbors = [n for n in neighbors if grid[n['y']][n['x']] != obsConstant]  # Exclude obstacles
+    while queue:
+        current = queue.popleft()
+        
+        if current['x'] == goal['x'] and current['y'] == goal['y']:
+            # Reconstruct path
+            path = []
+            while (current['x'], current['y']) != (start['x'], start['y']):
+                path.append(current)
+                current = parent[(current['x'], current['y'])]
+            path.append(start)
+            path.reverse()
+            return path
+        
+        for neighbor in get_neighbors(current):
+            if grid[neighbor['y']][neighbor['x']] == obsConstant:
+                continue  # Skip obstacles
+            if (neighbor['x'], neighbor['y']) in visited:
+                continue  # Skip visited
+            queue.append(neighbor)
+            visited.add((neighbor['x'], neighbor['y']))
+            parent[(neighbor['x'], neighbor['y'])] = current  # Track path
 
-        if not neighbors:
-            # print("No path to goal!")
-            return stack
-
-        # Choose the neighbor closest to the goal
-        next_pos = min(neighbors, key=lambda n: manhattan_distance(n, goal))
-        stack.append(next_pos)
-        current_pos = next_pos
-    return stack
+    print("No path to goal!")
+    return []
 
 # Execute the pathfinding
-path = move_to_goal(start, goal)
-grid[2][5] = -1
-#pretty_print_grid(grid)
+path = bfs_move_to_goal(start, goal)
+#grid[2][5] = -1
+print(path)
+pretty_print_grid(grid, path)
 #pprint(path) 
 
 #def clear_screen():
@@ -118,30 +128,35 @@ grid[2][5] = -1
 #        print()
 # Move forward by one unit (no turns, just forward motion)
 def move_forward():
-    left_motor.run_angle(speed, oneFoot, wait=False)
-    right_motor.run_angle(speed, oneFoot, wait=True) 
-    left_motor.stop()
-    right_motor.stop()
+    print("move_forward")
+    # left_motor.run_angle(speed, oneFoot, wait=False)
+    # right_motor.run_angle(speed, oneFoot, wait=True) 
+    # left_motor.stop()
+    # right_motor.stop()
 
 def turn_left_90():
-    left_motor.run_angle(speed, -turn, wait=False) 
-    right_motor.run_angle(speed, turn, wait=True)   
-    left_motor.stop()
-    right_motor.stop()
+    print("turn_left_90")
+    # left_motor.run_angle(speed, -turn, wait=False) 
+    # right_motor.run_angle(speed, turn, wait=True)   
+    # left_motor.stop()
+    # right_motor.stop()
 
 def turn_right_90():
-    left_motor.run_angle(speed, turn, wait=False)  
-    right_motor.run_angle(speed, -turn, wait=True)  
-    left_motor.stop()
-    right_motor.stop()
+    print("turn_right_90")
+    # left_motor.run_angle(speed, turn, wait=False)  
+    # right_motor.run_angle(speed, -turn, wait=True)  
+    # left_motor.stop()
+    # right_motor.stop()
 
 def move_left():
+    # print("move_left")
     turn_left_90()
     move_forward()
     turn_right_90()  
 
 # Function to move right (90-degree turn right, move forward, 90-degree turn back)
 def move_right():
+    # print("move_right")
     turn_right_90()  # Turn 90 degrees right
     move_forward()   # Move forward after turning right
     turn_left_90()   # Turn 90 degrees left to face forward again
