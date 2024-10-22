@@ -16,77 +16,74 @@ from collections import deque
 # oneFoot = 505
 # turn = 196
 
-
 obsConstant = 99
-
-# Define start and goal positions
-start = {'x': 1, 'y': 2}
-goal = {'x': 6, 'y': 2}
+start = {'x': 1, 'y': 1}
+goal = {'x': 14, 'y': 8}
 
 # Define grid dimensions and obstacles
-rows, cols = (10, 10)  # Update cols to 15 based on obstacle coordinates
+rows, cols = (10, 16)  # Update cols to 15 based on obstacle coordinates
 obs = [
-    {'x': 3, 'y': 2},
-    {'x': 4, 'y': 2},
+   {'x':3,'y':1}, 
+   {'x':3,'y':3}, 
+   {'x':8,'y':4}, 
+   {'x':8,'y':5}, 
+   {'x':8,'y':6}, 
+   {'x':8,'y':7}, 
 ]
 
 # Initialize grid
 grid = [[0 for _ in range(cols)] for _ in range(rows)]  
 
-# Pretty print the grid with path
-def pretty_print_grid(grid, path):
+def pretty_print_grid(grid, path=None):
     # Create a copy of the grid to modify
     grid_with_path = [row[:] for row in grid]
     
-    # Mark the path positions with '*'
-    for pos in path:
-        grid_with_path[pos['y']][pos['x']] = '*'
+    # If path is provided, mark the path positions with '*'
+    if path:
+        for pos in path:
+            grid_with_path[pos['y']][pos['x']] = '*'  # Correctly mark with '*'
     
-    # Print the grid, showing the path as stars
+    # Print the grid, showing the path as stars (if applicable)
     for row in grid_with_path:
         print(" ".join(f"{str(num):>3}" for num in row))
 
-# Call pretty_print_grid with the path to visualize the path
 
-
-for i in range(0, rows):
-    for j in range(0, cols):
-        distance = abs(goal['x'] - j) + abs(goal['y'] - i)
-        grid[i][j] = distance
+for x in range(rows):
+    for y in range(cols):
+        distance = abs(goal['x'] - x) + abs(goal['y'] - y)
+        grid[x][y] = distance
 
 # Insert obstacles into the grid
 def insert_obs():
     for o in obs:
-        grid[o['y']][o['x']] = obsConstant
+        grid[o['y']][o['x']] = obsConstant  # Note: x and y are reversed here
 
 insert_obs()
 
-# Manhattan distance function
 def manhattan_distance(p1, p2):
     return abs(p1['x'] - p2['x']) + abs(p1['y'] - p2['y'])
 
-# Get valid neighboring positions (up, down, left, right)
 def get_neighbors(pos):
     neighbors = [
-        {'x': pos['x'] + 1, 'y': pos['y']},  # right
-        {'x': pos['x'] - 1, 'y': pos['y']},  # left
-        {'x': pos['x'], 'y': pos['y'] + 1},  # down
-        {'x': pos['x'], 'y': pos['y'] - 1}   # up
+        {'x': pos['x'] + 1, 'y': pos['y']}, 
+        {'x': pos['x'] - 1, 'y': pos['y']}, 
+        {'x': pos['x'], 'y': pos['y'] + 1}, 
+        {'x': pos['x'], 'y': pos['y'] - 1} 
     ]
-    # Filter out neighbors that are out of bounds
-    return [n for n in neighbors if 0 <= n['x'] < cols and 0 <= n['y'] < rows]
+    return [n for n in neighbors if 0 <= n['x'] < cols and 0 <= n['y'] < rows and grid[n['y']][n['x']] != obsConstant]
 
 def bfs_move_to_goal(start, goal):
     queue = deque([start])
     visited = set()
     visited.add((start['x'], start['y']))
-    parent = {}  # To reconstruct the path
+    parent = {} 
+
 
     while queue:
         current = queue.popleft()
-        
+
         if current['x'] == goal['x'] and current['y'] == goal['y']:
-            # Reconstruct path
+            print("Valid Path found")
             path = []
             while (current['x'], current['y']) != (start['x'], start['y']):
                 path.append(current)
@@ -96,37 +93,21 @@ def bfs_move_to_goal(start, goal):
             return path
         
         for neighbor in get_neighbors(current):
-            if grid[neighbor['y']][neighbor['x']] == obsConstant:
-                continue  # Skip obstacles
             if (neighbor['x'], neighbor['y']) in visited:
                 continue  # Skip visited
             queue.append(neighbor)
             visited.add((neighbor['x'], neighbor['y']))
-            parent[(neighbor['x'], neighbor['y'])] = current  # Track path
+            parent[(neighbor['x'], neighbor['y'])] = current
 
-    print("No path to goal!")
+    print("No path to goal found")
     return []
 
 # Execute the pathfinding
 path = bfs_move_to_goal(start, goal)
-#grid[2][5] = -1
-print(path)
+grid[start['y']][start['x']] = 'S'
+grid[goal['y']][goal['x']] = 'G'
 pretty_print_grid(grid, path)
-#pprint(path) 
 
-#def clear_screen():
-#    os.system('clear')  # For Linux and macOS, use 'cls' if on Windows
-
-# Function to pretty print the grid and mark the current position with 'x'
-#def pretty_print_grid_with_robot(grid, robot_pos):
-#    for i, row in enumerate(grid):
-#        for j, num in enumerate(row):
-#            if i == robot_pos['y'] and j == robot_pos['x']:
-#                print("  x", end=" ")  # Mark current position with 'x'
-#            else:
-#                print(f"{num:3d}", end=" ")
-#        print()
-# Move forward by one unit (no turns, just forward motion)
 def move_forward():
     print("move_forward")
     # left_motor.run_angle(speed, oneFoot, wait=False)
