@@ -83,7 +83,7 @@ def bfs_move_to_goal(start, goal):
         current = queue.popleft()
 
         if current['x'] == goal['x'] and current['y'] == goal['y']:
-            print("Valid Path found")
+            # print("Valid Path found")
             path = []
             while (current['x'], current['y']) != (start['x'], start['y']):
                 path.append(current)
@@ -99,35 +99,35 @@ def bfs_move_to_goal(start, goal):
             visited.add((neighbor['x'], neighbor['y']))
             parent[(neighbor['x'], neighbor['y'])] = current
 
-    print("No path to goal found")
+    # print("No path to goal found")
     return []
 
 # Execute the pathfinding
 path = bfs_move_to_goal(start, goal)
 grid[start['y']][start['x']] = 'S'
 grid[goal['y']][goal['x']] = 'G'
-pretty_print_grid(grid, path)
+# pretty_print_grid(grid, path)
 
 def move_forward():
-    print("move_forward")
-    # left_motor.run_angle(speed, oneFoot, wait=False)
-    # right_motor.run_angle(speed, oneFoot, wait=True) 
-    # left_motor.stop()
-    # right_motor.stop()
+    # print("move_forward")
+    left_motor.run_angle(speed, oneFoot, wait=False)
+    right_motor.run_angle(speed, oneFoot, wait=True) 
+    left_motor.stop()
+    right_motor.stop()
 
 def turn_left_90():
-    print("turn_left_90")
-    # left_motor.run_angle(speed, -turn, wait=False) 
-    # right_motor.run_angle(speed, turn, wait=True)   
-    # left_motor.stop()
-    # right_motor.stop()
+    # print("turn_left_90")
+    left_motor.run_angle(speed, -turn, wait=False) 
+    right_motor.run_angle(speed, turn, wait=True)   
+    left_motor.stop()
+    right_motor.stop()
 
 def turn_right_90():
-    print("turn_right_90")
-    # left_motor.run_angle(speed, turn, wait=False)  
-    # right_motor.run_angle(speed, -turn, wait=True)  
-    # left_motor.stop()
-    # right_motor.stop()
+    # print("turn_right_90")
+    left_motor.run_angle(speed, turn, wait=False)  
+    right_motor.run_angle(speed, -turn, wait=True)  
+    left_motor.stop()
+    right_motor.stop()
 
 def move_left():
     # print("move_left")
